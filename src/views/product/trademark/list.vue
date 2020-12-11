@@ -35,6 +35,17 @@
       :total="total"
     >
     </el-pagination>
+    <!-- <el-pagination
+      class="trademark-pagination"
+      @size-change="getPagesTradeMarkList(current, $event)"
+      @current-change="getPagesTradeMarkList($event, size)"
+      :page-sizes="[3, 6, 9]"
+      :page-size.sync="size"
+      :current-page.sync="current"
+      layout="prev, pager, next, jumper,sizes,total"
+      :total="total"
+    >
+    </el-pagination> -->
   </div>
 </template>
 
@@ -51,34 +62,29 @@ export default {
   },
   methods: {
     async getPagesTradeMarkList(current, size) {
-      try {
-        const TradeMarkList = await this.$API.trademark.getPagesTradeMarkList(
-          current,
-          size
-        );
-        // console.log(TradeMarkList);
-        if (TradeMarkList.code === 200) {
-          this.$message.success("数据请求成功");
-          this.trademark = TradeMarkList.data.records;
-          this.current = TradeMarkList.data.current;
-          this.size = TradeMarkList.data.size;
-          this.total = TradeMarkList.data.total;
-        } else {
-          this.$message.error("请求失败");
-        }
-      } catch {
+      const TradeMarkList = await this.$API.trademark.getPagesTradeMarkList(
+        current,
+        size
+      );
+      // console.log(TradeMarkList);
+      if (TradeMarkList.code === 200) {
+        this.$message.success("数据请求成功");
+        this.trademark = TradeMarkList.data.records;
+        this.current = TradeMarkList.data.current;
+        this.size = TradeMarkList.data.size;
+        this.total = TradeMarkList.data.total;
+      } else {
         this.$message.error("请求失败");
       }
     },
-    // 当前页码发生改变时触发，自动接受当前点击的页码
+    // 方法1：当前页码发生改变时触发，自动接受当前点击的页码
     handleCurrentChange(current) {
       this.getPagesTradeMarkList(current, this.size);
-      console.log("current", this.current);
     },
     //当前页码条数发生改变时触发，自动接收当前页码的条数
     handleSizeChange(size) {
+      this.current = 1;
       this.getPagesTradeMarkList(this.current, size);
-      console.log("size", this.size);
     },
   },
   mounted() {
