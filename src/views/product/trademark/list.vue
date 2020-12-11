@@ -2,13 +2,9 @@
   <div>
     <el-button type="primary" icon="el-icon-plus">添加</el-button>
     <el-table :data="trademark" border style="width: 100%; margin-top: 20px">
-      <el-table-column
-        prop="num"
-        label="序号"
-        width="80"
-        align="center"
-      ></el-table-column>
-      <el-table-column prop="name" label="品牌名称"> </el-table-column>
+      <el-table-column type="index" label="序号" width="80" align="center">
+      </el-table-column>
+      <el-table-column prop="tmName" label="品牌名称"> </el-table-column>
       <el-table-column label="品牌LOGO">
         <!-- 使用作用域插槽，把子的数据传递到父元素上 -->
         <template slot-scope="scope">
@@ -16,7 +12,7 @@
             scope代表所有数据
               scope.row 代表当前行所有数据
           -->
-          <img class="trademark-img" :src="scope.row.logo" alt="logo" />
+          <img class="trademark-img" :src="scope.row.logoUrl" alt="logo" />
         </template>
       </el-table-column>
       <el-table-column label="操作">
@@ -33,9 +29,10 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
       :page-sizes="[3, 6, 9]"
-      :page-size="3"
+      :page-size.sync="size"
+      :current-page.sync="current"
       layout="prev, pager, next, jumper,sizes,total"
-      :total="20"
+      :total="total"
     >
     </el-pagination>
   </div>
@@ -46,28 +43,59 @@ export default {
   name: "TrademarkList",
   data() {
     return {
-      trademark: [
-        {
-          num: "1",
-          name: "大哈",
-          logo:
-            "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1607673477808&di=42d11c67672225dc1edc52d8d658d4da&imgtype=0&src=http%3A%2F%2Fn.sinaimg.cn%2Ffront%2F600%2Fw360h240%2F20181026%2F2W8k-hmxrkzx3269112.jpg",
-        },
-      ],
+      trademark: [],
+      current: 1, // 代表当前页码
+      size: 3, // 代表每页显示的条数
+      total: 0,
     };
+  },
+  methods: {
+    async getPagesTradeMarkList(current, size) {
+      try {
+        const TradeMarkList = await this.$API.trademark.getPagesTradeMarkList(
+          current,
+          size
+        );
+        // console.log(TradeMarkList);
+        if (TradeMarkList.code === 200) {
+          this.$message.success("数据请求成功");
+          this.trademark = TradeMarkList.data.records;
+          this.current = TradeMarkList.data.current;
+          this.size = TradeMarkList.data.size;
+          this.total = TradeMarkList.data.total;
+        } else {
+          this.$message.error("请求失败");
+        }
+      } catch {
+        this.$message.error("请求失败");
+      }
+    },
+    // 当前页码发生改变时触发，自动接受当前点击的页码
+    handleCurrentChange(current) {
+      this.getPagesTradeMarkList(current, this.size);
+      console.log("current", this.current);
+    },
+    //当前页码条数发生改变时触发，自动接收当前页码的条数
+    handleSizeChange(size) {
+      this.getPagesTradeMarkList(this.current, size);
+      console.log("size", this.size);
+    },
+  },
+  mounted() {
+    this.getPagesTradeMarkList(this.current, this.size);
   },
 };
 </script>
-<style lang="sass">
+<style lang="sass" scoped>
 .trademark-img
   width: 150px
 
 .trademark-handle
   width: 80px
 
-.trademark-pagination
+>>>.trademark-pagination
   text-align: right
 
-.el-pagination__jump
+/deep/.el-pagination__jump
   margin-left: 250px
 </style>
