@@ -1,7 +1,10 @@
 <template>
   <div>
     <!-- 点击添加展示的对话框 -->
-    <el-dialog title="添加品牌" :visible.sync="formVisible">
+    <el-dialog
+      :title="`${ruleForm.id ? '修改' : '添加'}品牌`"
+      :visible.sync="formVisible"
+    >
       <el-form
         :model="ruleForm"
         :rules="rules"
@@ -36,7 +39,7 @@
         </el-form-item>
       </el-form>
     </el-dialog>
-    <el-button type="primary" icon="el-icon-plus" @click="formVisible = true"
+    <el-button type="primary" icon="el-icon-plus" @click="addClear"
       >添加</el-button
     >
     <el-table :data="trademark" border style="width: 100%; margin-top: 20px">
@@ -44,20 +47,38 @@
       </el-table-column>
       <el-table-column prop="tmName" label="品牌名称"> </el-table-column>
       <el-table-column label="品牌LOGO">
-        <!-- 使用作用域插槽，把子的数据传递到父元素上 -->
+        <!-- 使用作用域插槽,把子的数据scope.row.logoUrl展示在父元素table上 -->
         <template slot-scope="scope">
           <!--scope代表所有数据
               scope.row 代表当前行所有数据-->
-          <img class="trademark-img" :src="scope.row.logoUrl" alt="logo" />
+          <img
+            class="trademark-img"
+            :src="scope.row.logoUrl"
+            alt="logo"
+            style="height: 60px"
+          />
         </template>
       </el-table-column>
       <el-table-column label="操作">
-        <el-button type="warning" icon="el-icon-edit" class="trademark-handle"
-          >修改</el-button
-        >
-        <el-button type="danger" icon="el-icon-delete" class="trademark-handle"
-          >删除</el-button
-        >
+        <!-- 解构scope获取里面row -->
+        <template v-slot="{ row }">
+          <el-button
+            type="warning"
+            icon="el-icon-edit"
+            class="trademark-handle"
+            @click="update(row)"
+            size="mini"
+            >修改</el-button
+          >
+          <el-button
+            type="danger"
+            icon="el-icon-delete"
+            class="trademark-handle"
+            size="mini"
+            @click="deltrademark(row)"
+            >删除</el-button
+          >
+        </template>
       </el-table-column>
     </el-table>
     <!-- <el-pagination
@@ -104,8 +125,8 @@ export default {
           { required: true, message: "请输入品牌名称", trigger: "blur" },
           {
             min: 2,
-            max: 15,
-            message: "长度在 2 到 15 个字符",
+            max: 10,
+            message: "长度在 2 到 10 个字符",
             trigger: "blur",
           },
         ],
@@ -166,20 +187,44 @@ export default {
       //将页面提交的图片url展示出来
       this.ruleForm.logoUrl = res.data;
     },
-    //表单提交的时候触发
+    //表单提交的时候触发,发送请求添加品牌
     submitForm(ruleForm) {
       this.$refs[ruleForm].validate(async (valid) => {
         if (valid) {
           // 表示表单验证通过
-          // const addResult = await this.$API.trademark.addTradeMarkList(
-          //   this.ruleForm.tmName,
-          //   this.ruleForm.logoUrl
-          // );
-          const addResult = await this.$API.trademark.addTradeMarkList(
-            this.ruleForm
-          );
+          let addResult; //声明保存添加/修改后的返回值
+          //判断是修改表单时提交的数据有无更改，无更改就不发送请求
+          // const isUpdate = !!this.ruleForm.id;  //强制改成布尔值
+          if (this.ruleForm.id) {
+            //如果有id就代表是修改
+            const nowtrademark = this.trademark.find(
+              (item) => item.id === this.ruleForm.id
+            );
+            if (
+              nowtrademark.tmName === this.ruleForm.tmName &&
+              nowtrademark.tmName === this.ruleForm.tmName
+            ) {
+              this.$message.warning("不能提交与之前相同的数据");
+              return;
+            }
+            // const addResult = await this.$API.trademark.addTradeMarkList({
+            //   logoUrl: this.ruleForm.logoUrl,
+            //   tmName: this.ruleForm.tmName,
+            // });
+            //如果是修改，调用修改的接口
+            addResult = await this.$API.trademark.updateTradeMarkList(
+              this.ruleForm
+            );
+          } else {
+            // 如果是添加，调用添加的接口
+            addResult = await this.$API.trademark.addTradeMarkList(
+              this.ruleForm
+            );
+          }
           if (addResult.code === 200) {
-            this.$message.success("添加品牌数据成功~");
+            this.$message.success(
+              `${this.ruleForm.id ? "修改" : "添加"}品牌数据成功~`
+            );
             this.formVisible = false; // 隐藏对话框
             this.getPagesTradeMarkList(1, this.size); // 请求加载新数据
             // 清空原添加数据,方便后面添加
@@ -200,6 +245,47 @@ export default {
     //取消提交表单的时候触发
     cancelForm(ruleForm) {
       this.formVisible = false;
+    },
+    //点击添加按钮清除表单校验的内容
+    addClear() {
+      //先清空表单校验
+      this.$refs.ruleForm && this.$refs.ruleForm.clearValidate();
+      this.ruleForm.id = "";
+      this.ruleForm.tmName = "";
+      this.ruleForm.logoUrl = "";
+      this.formVisible = true;
+    },
+    // 修改品牌数据
+    update(row) {
+      //先清空表单校验
+      this.$refs.ruleForm && this.$refs.ruleForm.clearValidate();
+      //属性多的时候合并,
+      // this.ruleForm = Object.assign(this.ruleForm, row);
+      this.ruleForm = { ...row };
+      this.formVisible = true; //显示对话框
+    },
+    //删除品牌数据
+    deltrademark(row) {
+      this.$confirm(`确定删除 ${this.ruleForm.tmName} 吗?`, "提示", {
+        type: "warning",
+      })
+        .then(async () => {
+          const result = await this.$API.trademark.delTradeMarkList(row.id);
+          if (result.code === 200) {
+            this.$message.success("删除品牌数据成功");
+            //删除后刷新列表
+            this.getPagesTradeMarkList(1, this.size);
+          }
+        })
+        .catch((error) => {
+          if (error === "cancel") {
+            // this.$message({
+            //   type: "info",
+            //   message: "已取消删除",
+            // });
+            this.$message.info("已取消删除");
+          }
+        });
     },
   },
   mounted() {

@@ -10,20 +10,6 @@ export default {
       method: "GET"
     });
   },
-  //获取品牌数据列表
-  // getTradeMarkList() {
-  //   return request({
-  //     url: `${api_name}/getTrademarkList`,
-  //     method: "GET"
-  //   });
-  // },
-  //获取具体某个品牌数据id
-  getTradeMark(id) {
-    return request({
-      url: `${api_name}/get/${id}`,
-      method: "GET"
-    });
-  },
   //添加品牌数据列表
   // addTradeMarkList(logoUrl, tmName) {
   //   return request({
@@ -43,14 +29,11 @@ export default {
     });
   },
   //修改更新品牌数据列表
-  updateTradeMarkList(logurl, tmName) {
+  updateTradeMarkList(data) {
     return request({
       url: `${api_name}/update`,
       method: "PUT",
-      data: {
-        logurl,
-        tmName
-      }
+      data
     });
   },
   //删除品牌数据列表
