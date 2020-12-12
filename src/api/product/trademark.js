@@ -11,12 +11,12 @@ export default {
     });
   },
   //获取品牌数据列表
-  getTradeMarkList() {
-    return request({
-      url: `${api_name}/getTrademarkList`,
-      method: "GET"
-    });
-  },
+  // getTradeMarkList() {
+  //   return request({
+  //     url: `${api_name}/getTrademarkList`,
+  //     method: "GET"
+  //   });
+  // },
   //获取具体某个品牌数据id
   getTradeMark(id) {
     return request({
@@ -25,14 +25,21 @@ export default {
     });
   },
   //添加品牌数据列表
-  addTradeMarkList(logoUrl, tmName) {
+  // addTradeMarkList(logoUrl, tmName) {
+  //   return request({
+  //     url: `${api_name}/save`,
+  //     method: "POST",
+  //     data: {
+  //       logoUrl,
+  //       tmName
+  //     }
+  //   });
+  // },
+  addTradeMarkList(data) {
     return request({
       url: `${api_name}/save`,
       method: "POST",
-      data: {
-        logoUrl,
-        tmName
-      }
+      data
     });
   },
   //修改更新品牌数据列表
