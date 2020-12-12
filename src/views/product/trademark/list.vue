@@ -42,7 +42,12 @@
     <el-button type="primary" icon="el-icon-plus" @click="addClear"
       >添加</el-button
     >
-    <el-table :data="trademark" border style="width: 100%; margin-top: 20px">
+    <el-table
+      v-loading="loading"
+      :data="trademark"
+      border
+      style="width: 100%; margin-top: 20px"
+    >
       <el-table-column type="index" label="序号" width="80" align="center">
       </el-table-column>
       <el-table-column prop="tmName" label="品牌名称"> </el-table-column>
@@ -115,6 +120,7 @@ export default {
       current: 1, // 代表当前页码
       size: 3, // 代表每页显示的条数
       total: 0,
+      loading: false, //设置loading
       formVisible: false, //定义对话框默认不显示
       ruleForm: {
         tmName: "",
@@ -139,11 +145,11 @@ export default {
   methods: {
     //封装发送获取品牌列表的方法
     async getPagesTradeMarkList(current, size) {
+      this.loading = true;
       const TradeMarkList = await this.$API.trademark.getPagesTradeMarkList(
         current,
         size
       );
-      // console.log(TradeMarkList);
       if (TradeMarkList.code === 200) {
         this.$message.success("数据请求成功");
         this.trademark = TradeMarkList.data.records;
@@ -153,6 +159,7 @@ export default {
       } else {
         this.$message.error("请求失败");
       }
+      this.loading = false;
     },
     // 方法1：当前页码发生改变时触发，自动接受当前点击的页码
     // handleCurrentChange(current) {
