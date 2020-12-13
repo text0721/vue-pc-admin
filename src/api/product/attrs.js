@@ -24,8 +24,8 @@ export default {
       method: "GET"
     });
   },
-  //获取属性具体列表清单
-  getPagesTradeMarkList(category1Id, category2Id, category3Id) {
+  //获取属性具体列表
+  getPagesTradeMarkList({ category1Id, category2Id, category3Id }) {
     return request({
       url: `${api_name}/attrInfoList/${category1Id}/${category2Id}/${category3Id}`,
       method: "GET"
