@@ -6,6 +6,7 @@
           v-model="category.category1Id"
           placeholder="请选择"
           @change="getCategory2"
+          :disabled="!isShow"
         >
           <el-option
             v-for="c1 in category1List"
@@ -20,6 +21,7 @@
           v-model="category.category2Id"
           placeholder="请选择"
           @change="getCategory3"
+          :disabled="!isShow"
         >
           <el-option
             v-for="c2 in category2List"
@@ -34,6 +36,7 @@
           v-model="category.category3Id"
           placeholder="请选择"
           @change="getAttr"
+          :disabled="!isShow"
         >
           <el-option
             v-for="c3 in category3List"
@@ -63,6 +66,7 @@ export default {
       },
     };
   },
+  props: ["isShow"],
   methods: {
     //请求二级分类列表
     async getCategory2() {

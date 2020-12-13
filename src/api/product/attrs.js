@@ -30,5 +30,20 @@ export default {
       url: `${api_name}/attrInfoList/${category1Id}/${category2Id}/${category3Id}`,
       method: "GET"
     });
-  }
+  },
+  //保存属性
+  saveAttrInfore(data) {
+    return request({
+      url: `${api_name}/saveAttrInfo`,
+      method: "POST",
+      data
+    });
+  },
+  //删除属性
+  deleteAttr(attrId) {
+    return request({
+      url: `${api_name}/deleteAttr/${attrId}`,
+      method: "DELETE"
+    });
+  },
 };
