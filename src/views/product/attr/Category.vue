@@ -80,6 +80,8 @@ export default {
       } else {
         this.$message.error(result.message);
       }
+      //清空父组件的等级列表
+      this.$emit("clearCategory");
     },
     //请求三级分类列表
     async getCategory3() {
@@ -92,6 +94,8 @@ export default {
       } else {
         this.$message.error(result.message);
       }
+      //清空父组件的等级列表
+      this.$emit("clearCategory");
     },
     //给父组件传递三级列表的各个id(自定义事件触发)
     getAttr() {

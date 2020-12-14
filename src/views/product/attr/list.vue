@@ -1,6 +1,10 @@
 <template>
   <div>
-    <Category @changeAttrs="getAttrs" :isShow="isShow" />
+    <Category
+      @changeAttrs="getAttrs"
+      @clearCategory="clearCategory"
+      :isShow="isShow"
+    />
     <el-card style="margin-top: 20px" v-show="isShow">
       <el-button
         type="primary"
@@ -114,11 +118,15 @@ export default {
   name: "AttrList",
   data() {
     return {
-      isGetSuccess: false, //判断数据是否请求成功
+      isGetSuccess: false, //数据请求成功就高亮添加属性按钮
       isEmpty: false, //判断编辑后的输入内容是否为空
       isShow: true, //判断添加/修改还是正常显示数据
       attrs: [], //保存请求回来的属性列表
-      category: {}, //保存三级id
+      category: {
+        category1Id: "",
+        category2Id: "",
+        category3Id: "",
+      },
       form: {
         attrName: "",
         attrValueList: [],
@@ -126,6 +134,11 @@ export default {
     };
   },
   methods: {
+    //清空父级等级属性列表
+    clearCategory() {
+      this.isGetSuccess = false;
+      this.attrs = [];
+    },
     //获取具体属性列表——自动定义事件,子组件触发传递参数category
     async getAttrs(category) {
       this.isGetSuccess = false;
@@ -141,10 +154,10 @@ export default {
     //点击直接添加属性按钮
     addAttrsList() {
       this.isShow = false;
-      this.form = {
-        attrName: "",
-        attrValueList: [],
-      };
+      this.form.attrName = "";
+      this.form.attrValueList = [];
+      //清空id，后面是根据id判断是添加还是修改发送请求的
+      this.form.attrName.id = "";
     },
     //点击编辑时"添加属性"的按钮
     addAttr() {
@@ -156,7 +169,7 @@ export default {
     },
     //点击编辑按钮修改属性
     update(row) {
-      // console.log(row);
+      console.log(row);
       this.form = JSON.parse(JSON.stringify(row));
       this.isShow = false;
     },
@@ -188,8 +201,21 @@ export default {
         this.$message.warning("品牌属性值不能为空");
         return;
       }
-      console.log(this.form);
-      const result = await this.$API.attrs.saveAttrInfore(this.form);
+      // console.log(this.form);
+      //判断是修改还是添加,form有id就是修改，没有就是添加上上传level等级跟属性catogeryid，
+      // 修改就传只attrName跟attrValueList
+      const isAdd = !!this.form.id;
+      let resultData;
+      if (!isAdd) {
+        resultData = {
+          ...this.form,
+          categoryId: this.category.category3Id,
+          categoryLevel: 3,
+        };
+      } else {
+        resultData = this.form;
+      }
+      const result = await this.$API.attrs.saveAttrInfore(resultData);
       if (result.code === 200) {
         this.$message.success("品牌属性更新成功");
         this.isShow = true;

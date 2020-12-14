@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 
-const api_name = "/admin/product/";
+const api_name = "/admin/product";
 
 export default {
   //获取一级列表
@@ -45,5 +45,5 @@ export default {
       url: `${api_name}/deleteAttr/${attrId}`,
       method: "DELETE"
     });
-  },
+  }
 };
