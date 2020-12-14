@@ -23,7 +23,7 @@ export default {
   //保存spu
   getSaveSpu(data) {
     return request({
-      url: `${api_name}/saveSpuInfo/`,
+      url: `${api_name}/saveSpuInfo`,
       method: "POST",
       data
     });
@@ -31,7 +31,7 @@ export default {
   //更新spu
   getUpdateSpu(data) {
     return request({
-      url: `${api_name}/updateSpuInfo/`,
+      url: `${api_name}/updateSpuInfo`,
       method: "POST",
       data
     });
@@ -43,10 +43,31 @@ export default {
       method: "DELETE"
     });
   },
-  //获取销售Attrs
+  //获取销售所有的商品属性
   getSaleAttrsList() {
     return request({
-      url: `${api_name}/baseSaleAttrList/`,
+      url: `${api_name}/baseSaleAttrList`,
+      method: "GET"
+    });
+  },
+  //获取所有的品牌列表
+  getTrademarkList() {
+    return request({
+      url: `${api_name}/baseTrademark/getTrademarkList`,
+      method: "GET"
+    });
+  },
+  //获取spu的所有图片列表
+  getSpuImageList(spuId) {
+    return request({
+      url: `${api_name}/spuImageList/${spuId}`,
+      method: "GET"
+    });
+  },
+  //获取所有销售属性列表
+  getSpuImageList(spuId) {
+    return request({
+      url: `${api_name}/spuImageList/${spuId}`,
       method: "GET"
     });
   }

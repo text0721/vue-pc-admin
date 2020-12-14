@@ -26,7 +26,7 @@ export default {
       this.isShow = false;
       // this.spuItem = JSON.parse(JSON.stringify(row));
       this.spuItem = { ...row };
-      console.log(this.spuItem);
+      // console.log(this.spuItem);
     },
   },
   components: {
