@@ -112,7 +112,8 @@
 </template>
 
 <script>
-import Category from "./Category";
+// import Category from "./Category";
+import Category from "@/components/Category";
 
 export default {
   name: "AttrList",
@@ -157,7 +158,7 @@ export default {
       this.form.attrName = "";
       this.form.attrValueList = [];
       //清空id，后面是根据id判断是添加还是修改发送请求的
-      this.form.attrName.id = "";
+      this.form.id = "";
     },
     //点击编辑时"添加属性"的按钮
     addAttr() {
