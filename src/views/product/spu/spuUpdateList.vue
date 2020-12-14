@@ -1,9 +1,12 @@
 <template>
   <div>
     <el-card style="margin-top: 20px">
-      <el-form label-width="80px">
+      <el-form label-width="80px" :model="spuform">
         <el-form-item label="SPU名称">
-          <el-input placeholder="请输入SPU名称"></el-input>
+          <el-input
+            placeholder="请输入SPU名称"
+            v-model="spuform.spuName"
+          ></el-input>
         </el-form-item>
         <el-form-item label="品牌">
           <el-select placeholder="请选择品牌">
@@ -12,7 +15,11 @@
           </el-select>
         </el-form-item>
         <el-form-item label="SPU描述">
-          <el-input type="textarea" placeholder="请输入SPU描述"></el-input>
+          <el-input
+            type="textarea"
+            placeholder="请输入SPU描述"
+            v-model="spuform.description"
+          ></el-input>
         </el-form-item>
         <el-form-item label="SPU图片">
           <el-upload
@@ -75,15 +82,13 @@
 <script>
 export default {
   name: "SpuUpdateList",
+  props: {
+    spuItem: Object,
+  },
   data() {
     return {
-      attrs: [],
-      category: {
-        category1Id: "",
-        category2Id: "",
-        category3Id: "",
-      },
-      // form: {},
+      // attrs: [],
+      spuform: this.spuItem,
     };
   },
 };

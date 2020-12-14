@@ -1,27 +1,63 @@
 <template>
   <el-card style="margin-top: 20px">
     <el-button type="primary" icon="el-icon-plus">添加SPU</el-button>
-    <el-table :data="spu" border style="width: 100%; margin-top: 20px">
+    <el-table
+      :data="spuList"
+      border
+      v-loading="loading"
+      style="width: 100%; margin-top: 20px"
+    >
       <el-table-column type="index" label="序号" width="80" align="center">
       </el-table-column>
-      <el-table-column label="SPU名称"> </el-table-column>
-      <el-table-column label="SPU描述"> </el-table-column>
+      <el-table-column label="SPU名称" prop="spuName"> </el-table-column>
+      <el-table-column label="SPU描述" prop="description"> </el-table-column>
       <el-table-column label="操作">
-        <el-button type="primary" icon="el-icon-plus" size="mini"></el-button>
-        <el-button type="primary" icon="el-icon-edit" size="mini"></el-button>
-        <el-button type="info" icon="el-icon-info" size="mini"></el-button>
-        <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+        <template v-slot="{ row }">
+          <el-button type="primary" icon="el-icon-plus" size="mini"></el-button>
+          <el-button
+            type="primary"
+            icon="el-icon-edit"
+            size="mini"
+            @click="checkedShow(row)"
+          ></el-button>
+          <el-button type="info" icon="el-icon-info" size="mini"></el-button>
+          <el-button
+            type="danger"
+            icon="el-icon-delete"
+            size="mini"
+          ></el-button>
+        </template>
       </el-table-column>
     </el-table>
+
+    <el-pagination
+      class="trademark-pagination"
+      @size-change="getPagesTradeMarkList(current, $event)"
+      @current-change="getPagesTradeMarkList($event, size)"
+      :page-sizes="[3, 6, 9]"
+      :page-size.sync="size"
+      :current-page.sync="current"
+      layout="prev, pager, next, jumper,sizes,total"
+      :total="total"
+    >
+    </el-pagination>
   </el-card>
 </template>
 
 <script>
 export default {
   name: "SpuShowList",
+  // props: {
+  //   changeIsShow: Function,
+  // },
   data() {
     return {
-      spu: [],
+      current: 1, // 代表当前页码
+      size: 3, // 代表每页显示的条数
+      total: 0,
+      loading: false, //设置loading
+      isGetSuccess: false, //设置添加spu属性的高亮
+      spuList: [], //所有的Spu列表
       category: {
         category1Id: "",
         category2Id: "",
@@ -29,8 +65,63 @@ export default {
       },
     };
   },
-  methods: {},
+  methods: {
+    //当等级属性更改的时候,该组件子显示的内容要清空
+    //清空等级属性列表
+    clearCategory() {
+      this.isGetSuccess = false;
+      this.spuList = [];
+    },
+    // Category组件三级分类选择好后，触发获取具体spu列表，使用全局事件总线,
+    getSpuLists(category) {
+      this.isGetSuccess = false;
+      this.category = category;
+      this.getPagesTradeMarkList();
+    },
+    //请求spu列表
+    async getPagesTradeMarkList() {
+      this.loading = true;
+      const result = await this.$API.spu.getSpuList({
+        current: this.current,
+        size: this.size,
+        category3Id: this.category.category3Id,
+      });
+      if (result.code === 200) {
+        this.$message.success("SPU数据请求成功");
+        // console.log(result);
+        this.spuList = result.data.records;
+        this.current = result.data.current;
+        this.size = result.data.size;
+        this.total = result.data.total;
+      } else {
+        this.$message.error("请求失败");
+      }
+      this.loading = false;
+    },
+    //切换显示spu的具体操作,把该行的数据传给父组件，然后父组件传递给update组件展示
+    checkedShow(row) {
+      this.$emit("changeIsShow", row);
+    },
+  },
+  mounted() {
+    //category组件触发发送给过来属性id数据，同时本组件请求属性3的spu数据列表
+    this.$bus.$on("changeAttrs", this.getSpuLists);
+    this.$bus.$on("clearCategory", this.clearCategory);
+  },
+  beforeDestroy() {
+    //不清理会累计请求，当真正请求时，本组件会累计触发
+    this.$bus.$off("changeAttrs", this.getAttrs);
+    this.$bus.$off("clearCategory", this.clearCategory);
+  },
 };
 </script>
 <style lang="sass" scoped>
+.trademark-handle
+  width: 80px
+
+>>>.trademark-pagination
+  text-align: right
+
+>>>.el-pagination__jump
+  margin-left: 250px
 </style>

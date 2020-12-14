@@ -1,10 +1,11 @@
 <template>
   <div>
-    <Category
+    <!-- <Category
       @changeAttrs="getAttrs"
       @clearCategory="clearCategory"
       :isShow="isShow"
-    />
+    /> -->
+    <Category :isShow="isShow" />
     <el-card style="margin-top: 20px" v-show="isShow">
       <el-button
         type="primary"
@@ -134,13 +135,21 @@ export default {
       },
     };
   },
+  mounted() {
+    this.$bus.$on("changeAttrs", this.getAttrs);
+    this.$bus.$on("clearCategory", this.clearCategory);
+  },
+  beforeDestroy() {
+    this.$bus.$off("changeAttrs", this.getAttrs);
+    this.$bus.$off("clearCategory", this.clearCategory);
+  },
   methods: {
     //清空父级等级属性列表
     clearCategory() {
       this.isGetSuccess = false;
       this.attrs = [];
     },
-    //获取具体属性列表——自动定义事件,子组件触发传递参数category
+    //获取具体属性列表——全局事件总线
     async getAttrs(category) {
       this.isGetSuccess = false;
       this.category = category;
@@ -170,7 +179,7 @@ export default {
     },
     //点击编辑按钮修改属性
     update(row) {
-      console.log(row);
+      // console.log(row);
       this.form = JSON.parse(JSON.stringify(row));
       this.isShow = false;
     },

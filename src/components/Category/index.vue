@@ -84,7 +84,7 @@ export default {
         this.$message.error(result.message);
       }
       //清空父组件的等级列表
-      this.$emit("clearCategory");
+      this.$bus.$emit("clearCategory");
     },
     //请求三级分类列表
     async getCategory3() {
@@ -98,14 +98,12 @@ export default {
         this.$message.error(result.message);
       }
       //清空父组件的等级列表
-      this.$emit("clearCategory");
+      this.$bus.$emit("clearCategory");
     },
     //给父组件传递三级列表的各个id(自定义事件触发)
     getAttr() {
-      console.log(this.categoryList);
-      console.log(this.category);
       const category = { ...this.category };
-      this.$emit("changeAttrs", category);
+      this.$bus.$emit("changeAttrs", category);
       this.isDisabled = true;
     },
   },
