@@ -40,12 +40,24 @@
           <span>只能上传jpg/png文件，且不超过50kb</span>
         </el-form-item>
 
-        <el-form-item label="销售属性" :model="spuform">
-          <el-select placeholder="还剩3个未选择">
-            <el-option>11</el-option>
+        <el-form-item label="销售属性" prop="saleAttrId">
+          <el-select
+            :placeholder="`还剩${filterSaleAttrList.length}个未选择`"
+            v-model="spuform.saleAttrId"
+          >
+            <el-option
+              v-for="sale in filterSaleAttrList"
+              :key="sale.id"
+              :label="sale.name"
+              :value="sale.id"
+            ></el-option>
           </el-select>
           <el-button type="primary" icon="el-icon-plus">添加销售属性</el-button>
-          <el-table :data="[]" border style="width: 100%; margin: 20px 0">
+          <el-table
+            :data="spuSaleAttrList"
+            border
+            style="width: 100%; margin: 20px 0"
+          >
             <el-table-column
               type="index"
               label="序号"
@@ -53,12 +65,16 @@
               align="center"
             >
             </el-table-column>
-            <el-table-column prop="attrName" label="属性名称" width="150">
+            <el-table-column prop="saleAttrName" label="属性名称" width="150">
             </el-table-column>
-
             <el-table-column label="属性值列表">
-              <template>
-                <el-tag style="margin-right: 5px">xxxx</el-tag>
+              <template v-slot="{ row }">
+                <el-tag
+                  style="margin-right: 5px"
+                  v-for="saleAttr in row.spuSaleAttrValueList"
+                  :key="saleAttr.id"
+                  >{{ saleAttr.saleAttrValueName }}</el-tag
+                >
               </template>
             </el-table-column>
             <el-table-column label="操作" width="150">
@@ -80,6 +96,7 @@
           <el-button>取消</el-button>
         </el-form-item>
       </el-form>
+
       <!-- 隐藏放大的图片 -->
       <el-dialog :visible.sync="dialogVisible">
         <img width="100%" :src="dialogImageUrl" alt="" />
@@ -89,6 +106,7 @@
 </template>
 
 <script>
+import { resetRouter } from "@/router";
 export default {
   name: "SpuUpdateList",
   props: {
@@ -101,9 +119,44 @@ export default {
       spuImageList: [], //所有spu图片列表,id,spuId,imgName,imgUrl
       dialogImageUrl: "", // 图片地址
       dialogVisible: false, // 图片对话框显示&隐藏
+      saleAttrList: [], //所有销售属性
+      spuSaleAttrList: [], //当前spu销售属性
     };
   },
+  computed: {
+    //过滤掉总销售属性和当前销售属性重复的部分
+    filterSaleAttrList() {
+      return this.saleAttrList.filter((sale) => {
+        //找到id的表示是重复的，筛选出没有重复部分，即过滤返回没有重复部分
+        return !this.spuSaleAttrList.find(
+          (spuSale) => spuSale.baseSaleAttrId === sale.id
+        );
+      });
+    },
+  },
   methods: {
+    //获取所有销售属性列表
+    async getSaleAttrsList() {
+      const result = await this.$API.spu.getSaleAttrList();
+      if (result.code === 200) {
+        this.saleAttrList = result.data;
+        // console.log(result);
+        this.$message.success("获取所有的销售属性成功");
+      } else {
+        this.$message.error("获取所有的销售属性失败");
+      }
+    },
+    //获取当前spu属性列表
+    async getSpuSaleAttrsList() {
+      const result = await this.$API.spu.getSpuSaleAttrList(this.spuform.id);
+      if (result.code === 200) {
+        this.spuSaleAttrList = result.data;
+        // console.log(this.spuSaleAttrList);
+        this.$message.success("获取当前spu列表成功");
+      } else {
+        this.$message.error("获取当前spu列表失败");
+      }
+    },
     //获取所有的品牌列表
     async getAllTrademarkList() {
       const result = await this.$API.spu.getTrademarkList();
@@ -149,6 +202,8 @@ export default {
     },
   },
   mounted() {
+    this.getSaleAttrsList();
+    this.getSpuSaleAttrsList();
     this.getAllTrademarkList();
     this.getSpuImagesList();
   },

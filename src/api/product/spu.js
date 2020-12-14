@@ -14,12 +14,12 @@ export default {
     });
   },
   //获取某个spu
-  getSpu(spuId) {
-    return request({
-      url: `${api_name}/getSpuById/${spuId}`,
-      method: "GET"
-    });
-  },
+  // getSpu(spuId) {
+  //   return request({
+  //     url: `${api_name}/getSpuById/${spuId}`,
+  //     method: "GET"
+  //   });
+  // },
   //保存spu
   getSaveSpu(data) {
     return request({
@@ -43,13 +43,6 @@ export default {
       method: "DELETE"
     });
   },
-  //获取销售所有的商品属性
-  getSaleAttrsList() {
-    return request({
-      url: `${api_name}/baseSaleAttrList`,
-      method: "GET"
-    });
-  },
   //获取所有的品牌列表
   getTrademarkList() {
     return request({
@@ -65,9 +58,16 @@ export default {
     });
   },
   //获取所有销售属性列表
-  getSpuImageList(spuId) {
+  getSaleAttrList() {
     return request({
-      url: `${api_name}/spuImageList/${spuId}`,
+      url: `${api_name}/baseSaleAttrList`,
+      method: "GET"
+    });
+  },
+  //获取spu销售属性列表
+  getSpuSaleAttrList(spuId) {
+    return request({
+      url: `${api_name}/spuSaleAttrList/${spuId}`,
       method: "GET"
     });
   }
