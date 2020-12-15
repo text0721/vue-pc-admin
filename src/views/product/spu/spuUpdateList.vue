@@ -1,14 +1,19 @@
 <template>
   <div>
     <el-card style="margin-top: 20px">
-      <el-form label-width="80px" :model="spuform">
-        <el-form-item label="SPU名称">
+      <el-form
+        label-width="80px"
+        :model="spuform"
+        :rules="rules"
+        ref="formRules"
+      >
+        <el-form-item label="SPU名称" prop="spuName">
           <el-input
             placeholder="请输入SPU名称"
             v-model="spuform.spuName"
           ></el-input>
         </el-form-item>
-        <el-form-item label="品牌">
+        <el-form-item label="品牌" prop="tmId">
           <el-select placeholder="请选择品牌" v-model="spuform.tmId">
             <el-option
               v-for="tm in TrademarkList"
@@ -18,14 +23,14 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="SPU描述">
+        <el-form-item label="SPU描述" prop="description">
           <el-input
             type="textarea"
             placeholder="请输入SPU描述"
             v-model="spuform.description"
           ></el-input>
         </el-form-item>
-        <el-form-item label="SPU图片">
+        <el-form-item label="SPU图片" prop="spuImageList">
           <el-upload
             class="avatar-uploader"
             list-type="picture-card"
@@ -43,7 +48,7 @@
           <span>只能上传jpg/png文件，且不超过50kb</span>
         </el-form-item>
 
-        <el-form-item label="销售属性" prop="validateSpuFrom">
+        <el-form-item label="销售属性" prop="spuSaleAttrList">
           <el-select
             :placeholder="`还剩${filterSaleAttrList.length}个未选择`"
             v-model="spuform.spuSaleAttrId"
@@ -120,8 +125,8 @@
           </el-table>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary">保存</el-button>
-          <el-button>取消</el-button>
+          <el-button type="primary" @click="save">保存</el-button>
+          <el-button @click="cancleUpdate">取消</el-button>
         </el-form-item>
       </el-form>
 
@@ -150,12 +155,14 @@ export default {
       saleAttrList: [], //所有销售属性
       spuSaleAttrList: [], //当前spu销售属性
       saleAttrValueText: "", //添加编辑的销售属性值
-      validateSpuFrom: {
-        //当前的更新界面商品表单校验
-        spuName: "", //商品名字
-        description: "", //商品描述
-        tmId: "", //品牌id
-        saleAttrId: "", //销售属性id
+      rules: {
+        spuName: [{ required: true, message: "请输入spu名称" }],
+        tmId: [{ required: true, message: "请输入spu品牌" }],
+        description: [{ required: true, message: "请输入spu描述" }],
+        spuImageList: [{ required: true, validator: this.ImgsValidator }],
+        spuSaleAttrList: [
+          { required: true, validator: this.saleAttrValidator },
+        ],
       },
     };
   },
@@ -243,11 +250,8 @@ export default {
       // console.log(row, index);
       row.spuSaleAttrValueList.splice(index, 1);
     },
-    //删除spu整个销售属性
+    //删除当前spu整个销售属性
     delSpuAttrValue(row, index) {
-      // console.log(row, index);
-      // this.spuSaleAttrList.splice(index, 1);
-      // console.log(row, index);
       const { saleAttrName } = row;
       this.$confirm(`您确定删除${saleAttrName}属性吗?`, {
         confirmButtonText: "确定",
@@ -261,15 +265,79 @@ export default {
           this.$message.info(`已取消删除${row.saleAttrName}属性`);
         });
     },
+    //校验spu图片是否添加
+    ImgsValidator(rule, value, callback) {
+      if (this.spuImageList.length > 0) {
+        //校验通过直接调用回调函数即可，校验失败回调函数内提示即可
+        callback();
+        return;
+      }
+      callback("请至少上传一张图片");
+    },
+    //校验销售属性及属性值是否添加
+    saleAttrValidator(rule, value, callback) {
+      //至少有一个销售属性
+      if (this.spuSaleAttrList.length === 0) {
+        callback("请至少选择一个销售属性");
+        return;
+      }
+      //至少要有一个属性值
+      const includAttr = this.spuSaleAttrList.some(
+        (attr) => attr.spuSaleAttrValueList.length > 0
+      );
+      if (!includAttr) {
+        callback("请至少选择一个销售属性值");
+        return;
+      }
+      //校验成功走下一步
+      callback();
+    },
+    //校验成功后,点击保存发送请求更新spu数据
+    save() {
+      /*   
+        "category3Id": 0,
+        "description": "string",
+        "id": 0,
+        "spuImageList": [],
+        "spuName": "string",
+        "spuSaleAttrList": [],
+        "tmId": 0
+      */
+      this.$refs.formRules.validate(async (valid) => {
+        if (valid) {
+          // console.log("校验成功");
+          // 表单验证通过之后发送请求，更新spu数据
+          const data = {
+            ...this.spuform,
+            spuImageList: this.spuImageList,
+            spuSaleAttrList: this.spuSaleAttrList,
+          };
+          const result = await this.$API.spu.getUpdateSpu(data);
+          if (result.code === 200) {
+            this.$message.success("更新spu数据成功");
+            //通知父组件切换到正常的show页面
+            this.$emit("updateIsShow");
+          } else {
+            this.$message.error("更新spu数据失败,请重新操作");
+          }
+        } else {
+          this.$message.error("更新spu数据失败,请重新操作");
+        }
+      });
+    },
+    //取消更新/保存
+    cancleUpdate() {
+      this.$emit("updateIsShow");
+    },
     //获取所有销售属性列表
     async getSaleAttrsList() {
       const result = await this.$API.spu.getSaleAttrList();
       if (result.code === 200) {
         this.saleAttrList = result.data;
         // console.log(result);
-        this.$message.success("获取所有的销售属性成功");
+        this.$message.success("获取所有销售属性成功");
       } else {
-        this.$message.error("获取所有的销售属性失败");
+        this.$message.error("获取所有销售属性失败");
       }
     },
     //获取当前spu属性列表
@@ -288,9 +356,9 @@ export default {
       const result = await this.$API.spu.getTrademarkList();
       if (result.code === 200) {
         this.TrademarkList = result.data;
-        this.$message.success("获取所有的品牌列表成功");
+        this.$message.success("获取所有品牌列表成功");
       } else {
-        this.$message.error("获取所有的品牌列表失败");
+        this.$message.error("获取所有品牌列表失败");
       }
     },
     //获取spu的所有图片列表
