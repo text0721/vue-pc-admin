@@ -29,10 +29,13 @@
           <el-upload
             class="avatar-uploader"
             list-type="picture-card"
+            accept="image/*"
             :on-preview="handlePreview"
             :on-remove="handleRemove"
-            :file-list="spuImageList"
+            :file-list="formatSpuImageList"
             :action="`${$BASE_API}/admin/product/fileUpload`"
+            :before-upload="beforeAvatarUpload"
+            :on-success="handleAvatarSuccess"
           >
             <img v-if="false" src="xxxx" class="avatar" />
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
@@ -40,10 +43,10 @@
           <span>只能上传jpg/png文件，且不超过50kb</span>
         </el-form-item>
 
-        <el-form-item label="销售属性" prop="saleAttrId">
+        <el-form-item label="销售属性" prop="validateSpuFrom">
           <el-select
             :placeholder="`还剩${filterSaleAttrList.length}个未选择`"
-            v-model="spuform.saleAttrId"
+            v-model="validateSpuFrom.saleAttrId"
           >
             <el-option
               v-for="sale in filterSaleAttrList"
@@ -52,7 +55,12 @@
               :value="sale.id"
             ></el-option>
           </el-select>
-          <el-button type="primary" icon="el-icon-plus">添加销售属性</el-button>
+          <el-button
+            type="primary"
+            icon="el-icon-plus"
+            :disabled="!validateSpuFrom.saleAttrId"
+            >添加销售属性</el-button
+          >
           <el-table
             :data="spuSaleAttrList"
             border
@@ -73,7 +81,25 @@
                   style="margin-right: 5px"
                   v-for="saleAttr in row.spuSaleAttrValueList"
                   :key="saleAttr.id"
+                  closable
                   >{{ saleAttr.saleAttrValueName }}</el-tag
+                >
+                <el-input
+                  class="input-new-tag"
+                  v-if="inputVisible"
+                  v-model="inputValue"
+                  ref="saveTagInput"
+                  size="mini"
+                  @keyup.enter.native="handleInputConfirm"
+                  @blur="handleInputConfirm"
+                >
+                </el-input>
+                <el-button
+                  v-else
+                  class="button-new-tag"
+                  size="small"
+                  @click="showInput"
+                  >+ New Tag</el-button
                 >
               </template>
             </el-table-column>
@@ -116,14 +142,33 @@ export default {
     return {
       spuform: this.spuItem,
       TrademarkList: [], //所有品牌清单,id,tmName,logoUrl
-      spuImageList: [], //所有spu图片列表,id,spuId,imgName,imgUrl
+      spuImageList: [], //获取的spu图片列表格式:id,spuId,imgName,imgUrl
       dialogImageUrl: "", // 图片地址
       dialogVisible: false, // 图片对话框显示&隐藏
       saleAttrList: [], //所有销售属性
       spuSaleAttrList: [], //当前spu销售属性
+      validateSpuFrom: {
+        //当前的更新界面商品表单校验
+        spuName: "", //商品名字
+        description: "", //商品描述
+        tmId: "", //品牌id
+        saleAttrId: "", //销售属性id
+      },
+      inputVisible: false, //设置标签
+      inputValue: "",
     };
   },
   computed: {
+    //格式化请求返回的图片
+    formatSpuImageList() {
+      return this.spuImageList.map((img) => {
+        return {
+          uid: img.id || img.uid,
+          name: img.imgName,
+          url: img.imgUrl,
+        };
+      });
+    },
     //过滤掉总销售属性和当前销售属性重复的部分
     filterSaleAttrList() {
       return this.saleAttrList.filter((sale) => {
@@ -171,14 +216,15 @@ export default {
     async getSpuImagesList() {
       const result = await this.$API.spu.getSpuImageList(this.spuform.id);
       if (result.code === 200) {
-        // 文档显示格式：fileList: [{ name: "", url: "xxx" }],
-        this.spuImageList = result.data.map((img) => {
-          return {
-            id: img.id,
-            name: img.imgName,
-            url: img.imgUrl,
-          };
-        });
+        // 文档只能显示的格式:fileList:[{ name: "", url: "xxx" }],获取的数据需要格式化才能展示
+        this.spuImageList = result.data;
+        // .map((img) => {
+        //   return {
+        //     id: img.id,
+        //     name: img.imgName,
+        //     url: img.imgUrl,
+        //   };
+        // });
         // console.log(result.data)
         this.$message.success("获取spu所有图片列表成功");
       } else {
@@ -197,8 +243,53 @@ export default {
       // 点击移出的时候将该图片移出spuImageList
       // console.log(file, fileList);
       this.spuImageList = this.spuImageList.filter(
-        (spuImg) => spuImg.id != file.id
+        (spuImg) => spuImg.imgUrl != file.url
       );
+    },
+    //上传文件图片之前触发，里面进行图片校验，默认接收到传输的文件
+    beforeAvatarUpload(file) {
+      //  accept="image/png, image/jpeg"可以直接设置接受的文件的属性"image/*"即支持所有img格式
+      //该函数是对accept类型的进一步规范校验
+      //支持的文件格式类型
+      // const supportTypes = ["image/jpg", "image/png", "image/jpeg"];
+      const supportTypes = ["image/jpg", "image/png"];
+      //判断上传的类型是否支持
+      const isVadilid = supportTypes.includes(file.type);
+      // 校验文件的大小
+      const isLt50kb = file.size / 1024 < 50;
+      if (!isVadilid) {
+        this.$message.error("上传图片只能是jpg/png文件!");
+      }
+      if (!isLt50kb) {
+        this.$message.error("上传图片大小不能超过 50kb !");
+      }
+      return isVadilid && isLt50kb;
+    },
+    //文件上传之后触发(校验成功),显示图片
+    handleAvatarSuccess(res, file) {
+      //res是上传文件的具体信息，file是上传的整个,得到url后把url提交到后端服务器(actions)
+      // this.ruleForm.logoUrl = res.data;
+      this.spuImageList.push({
+        uid: file.uid,
+        imgName: file.name,
+        imgUrl: res.data,
+      });
+    },
+    //点击小标签
+    showInput() {
+      this.inputVisible = true;
+      this.$nextTick((_) => {
+        this.$refs.saveTagInput.$refs.input.focus();
+      });
+    },
+    //小标签的添加文字处理
+    handleInputConfirm() {
+      let inputValue = this.inputValue;
+      if (inputValue) {
+        this.dynamicTags.push(inputValue);
+      }
+      this.inputVisible = false;
+      this.inputValue = "";
     },
   },
   mounted() {
