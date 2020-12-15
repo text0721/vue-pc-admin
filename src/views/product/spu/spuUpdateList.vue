@@ -77,13 +77,13 @@
             <el-table-column prop="saleAttrName" label="属性名称" width="150">
             </el-table-column>
             <el-table-column label="属性值列表">
-              <template v-slot="{ row, $index }">
+              <template v-slot="{ row }">
                 <el-tag
                   style="margin-right: 5px"
-                  v-for="saleAttr in row.spuSaleAttrValueList"
+                  v-for="(saleAttr, index) in row.spuSaleAttrValueList"
                   :key="saleAttr.id"
                   closable
-                  @close="delTag(row)"
+                  @close="delTag(row, index)"
                   >{{ saleAttr.saleAttrValueName }}</el-tag
                 >
                 <el-input
@@ -93,8 +93,8 @@
                   size="mini"
                   style="width: 100px"
                   autofocus
-                  @keyup.enter.native="ddSaleAttr(row, $index)"
-                  @blur="ddSaleAttr(row, $index)"
+                  @keyup.enter.native="addSaleAttr(row)"
+                  @blur="addSaleAttr(row)"
                 >
                 </el-input>
                 <el-button
@@ -106,12 +106,16 @@
                 >
               </template>
             </el-table-column>
+
             <el-table-column label="操作" width="150">
-              <el-button
-                type="danger"
-                icon="el-icon-delete"
-                size="mini"
-              ></el-button>
+              <template v-slot="{ row, $index }">
+                <el-button
+                  type="danger"
+                  icon="el-icon-delete"
+                  size="mini"
+                  @click="delSpuAttrValue(row, $index)"
+                ></el-button>
+              </template>
             </el-table-column>
           </el-table>
         </el-form-item>
@@ -220,7 +224,7 @@ export default {
       });
     },
     //添加销售属性值
-    ddSaleAttr(row, index) {
+    addSaleAttr(row) {
       if (this.saleAttrValueText) {
         row.spuSaleAttrValueList.push({
           baseSaleAttrId: row.baseSaleAttrId,
@@ -235,7 +239,28 @@ export default {
       row.edit = false;
     },
     //删除spu单个销售属性值
-    delTag(row) {},
+    delTag(row, index) {
+      // console.log(row, index);
+      row.spuSaleAttrValueList.splice(index, 1);
+    },
+    //删除spu整个销售属性
+    delSpuAttrValue(row, index) {
+      // console.log(row, index);
+      // this.spuSaleAttrList.splice(index, 1);
+      // console.log(row, index);
+      const { saleAttrName } = row;
+      this.$confirm(`您确定删除${saleAttrName}属性吗?`, {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(async () => {
+          this.spuSaleAttrList.splice(index, 1);
+        })
+        .catch(() => {
+          this.$message.info(`已取消删除${row.saleAttrName}属性`);
+        });
+    },
     //获取所有销售属性列表
     async getSaleAttrsList() {
       const result = await this.$API.spu.getSaleAttrList();
@@ -311,6 +336,7 @@ export default {
       const supportTypes = ["image/jpg", "image/png"];
       //判断上传的类型是否支持
       const isVadilid = supportTypes.includes(file.type);
+      // const isVadilid = supportTypes.indexOf(file.type) > -1;
       // 校验文件的大小
       const isLt50kb = file.size / 1024 < 50;
       if (!isVadilid) {
