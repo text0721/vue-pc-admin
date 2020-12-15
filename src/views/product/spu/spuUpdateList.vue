@@ -46,7 +46,7 @@
         <el-form-item label="销售属性" prop="validateSpuFrom">
           <el-select
             :placeholder="`还剩${filterSaleAttrList.length}个未选择`"
-            v-model="validateSpuFrom.saleAttrId"
+            v-model="spuform.spuSaleAttrId"
           >
             <el-option
               v-for="sale in filterSaleAttrList"
@@ -58,7 +58,8 @@
           <el-button
             type="primary"
             icon="el-icon-plus"
-            :disabled="!validateSpuFrom.saleAttrId"
+            :disabled="!spuform.spuSaleAttrId"
+            @click="clickAddSaleAttr"
             >添加销售属性</el-button
           >
           <el-table
@@ -76,39 +77,36 @@
             <el-table-column prop="saleAttrName" label="属性名称" width="150">
             </el-table-column>
             <el-table-column label="属性值列表">
-              <template v-slot="{ row }">
+              <template v-slot="{ row, $index }">
                 <el-tag
                   style="margin-right: 5px"
                   v-for="saleAttr in row.spuSaleAttrValueList"
                   :key="saleAttr.id"
                   closable
+                  @close="delTag(row)"
                   >{{ saleAttr.saleAttrValueName }}</el-tag
                 >
                 <el-input
-                  class="input-new-tag"
-                  v-if="inputVisible"
-                  v-model="inputValue"
-                  ref="saveTagInput"
+                  v-if="row.edit"
+                  v-model="saleAttrValueText"
+                  ref="input"
                   size="mini"
-                  @keyup.enter.native="handleInputConfirm"
-                  @blur="handleInputConfirm"
+                  style="width: 100px"
+                  autofocus
+                  @keyup.enter.native="ddSaleAttr(row, $index)"
+                  @blur="ddSaleAttr(row, $index)"
                 >
                 </el-input>
                 <el-button
                   v-else
                   class="button-new-tag"
                   size="small"
-                  @click="showInput"
-                  >+ New Tag</el-button
+                  @click="edit(row)"
+                  >+ 添加</el-button
                 >
               </template>
             </el-table-column>
             <el-table-column label="操作" width="150">
-              <el-button
-                type="warning"
-                icon="el-icon-edit"
-                size="mini"
-              ></el-button>
               <el-button
                 type="danger"
                 icon="el-icon-delete"
@@ -147,6 +145,7 @@ export default {
       dialogVisible: false, // 图片对话框显示&隐藏
       saleAttrList: [], //所有销售属性
       spuSaleAttrList: [], //当前spu销售属性
+      saleAttrValueText: "", //添加编辑的销售属性值
       validateSpuFrom: {
         //当前的更新界面商品表单校验
         spuName: "", //商品名字
@@ -154,8 +153,6 @@ export default {
         tmId: "", //品牌id
         saleAttrId: "", //销售属性id
       },
-      inputVisible: false, //设置标签
-      inputValue: "",
     };
   },
   computed: {
@@ -180,6 +177,65 @@ export default {
     },
   },
   methods: {
+    //点击添加销售属性列表
+    clickAddSaleAttr() {
+      //从当前spuform中解构出将来肯定有的spuSaleAttrId和本商品id
+      const { spuSaleAttrId, id } = this.spuform;
+      //从所有销售属性id中找到当前的spu的id相同的销售属性对象
+      const saleresult = this.saleAttrList.find(
+        (sale) => sale.id === spuSaleAttrId
+      );
+      /*{spuSaleAttrList的结构
+          "baseSaleAttrId": 0, // 所有销售属性id
+          "id": 0, // 由后台生成
+          "saleAttrName": "string",  // 所有销售属性名称
+          "spuId": 0, // SPU id
+          "spuSaleAttrValueList": [
+               {
+                 "baseSaleAttrId": 0,
+                 "id": 0,
+                 "isChecked": "string",
+                 "saleAttrName": "string",
+                 "saleAttrValueName": "string",
+                 "spuId": 0
+               }
+          ]
+      }*/
+      // 将销售属性添加到商品中
+      this.spuSaleAttrList.push({
+        baseSaleAttrId: saleresult.id, //上行找到的销售属性id
+        // id: spuform.id,
+        saleAttrName: saleresult.name, //上行找到的销售属性name
+        spuId: id, //当前spu商品的id
+        spuSaleAttrValueList: [],
+      });
+      //清空spuSaleAttrId,
+      this.spuform.spuSaleAttrId = "";
+    },
+    //点击添加按钮,给当前row添加edit为true,以此显示input框
+    edit(row) {
+      this.$set(row, "edit", true);
+      this.$nextTick(() => {
+        this.$refs.input.focus();
+      });
+    },
+    //添加销售属性值
+    ddSaleAttr(row, index) {
+      if (this.saleAttrValueText) {
+        row.spuSaleAttrValueList.push({
+          baseSaleAttrId: row.baseSaleAttrId,
+          // id: 0,
+          saleAttrName: row.saleAttrName,
+          saleAttrValueName: this.saleAttrValueText,
+          spuId: row.spuId,
+        });
+        //添加完后清空输入的内容
+        this.saleAttrValueText = "";
+      }
+      row.edit = false;
+    },
+    //删除spu单个销售属性值
+    delTag(row) {},
     //获取所有销售属性列表
     async getSaleAttrsList() {
       const result = await this.$API.spu.getSaleAttrList();
@@ -274,22 +330,6 @@ export default {
         imgName: file.name,
         imgUrl: res.data,
       });
-    },
-    //点击小标签
-    showInput() {
-      this.inputVisible = true;
-      this.$nextTick((_) => {
-        this.$refs.saveTagInput.$refs.input.focus();
-      });
-    },
-    //小标签的添加文字处理
-    handleInputConfirm() {
-      let inputValue = this.inputValue;
-      if (inputValue) {
-        this.dynamicTags.push(inputValue);
-      }
-      this.inputVisible = false;
-      this.inputValue = "";
     },
   },
   mounted() {
