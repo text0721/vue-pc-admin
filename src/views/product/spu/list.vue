@@ -29,12 +29,14 @@ export default {
       this.spuItem = { ...row };
       // console.log(this.spuItem);
     },
+
     //update组件数据更新，父组件通知SpuShowList组件重新发送请求更新列表
-    updateIsShow() {
+    updateIsShow(category3Id) {
       this.isShow = true;
-      // this.$next(() => {
-      //   this.$bus.$emit("changeAttrs");
-      // });
+      this.$nextTick(() => {
+        console.log("list父组件", category3Id);
+        this.$bus.$emit("changeAttrs", { category3Id });
+      });
     },
   },
   components: {

@@ -316,7 +316,9 @@ export default {
           if (result.code === 200) {
             this.$message.success("更新spu数据成功");
             //通知父组件切换到正常的show页面
-            this.$emit("updateIsShow");
+            this.$emit("updateIsShow", this.spuform.category3Id);
+            console.log("update更新组件", this.spuform.category3Id);
+            // this.$emit("updateIsShow")
           } else {
             this.$message.error("更新spu数据失败,请重新操作");
           }
@@ -327,7 +329,8 @@ export default {
     },
     //取消更新/保存
     cancleUpdate() {
-      this.$emit("updateIsShow");
+      this.$emit("updateIsShow", this.spuform.category3Id);
+      console.log("update更新组件", this.spuform.category3Id);
     },
     //获取所有销售属性列表
     async getSaleAttrsList() {

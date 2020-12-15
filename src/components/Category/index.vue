@@ -100,7 +100,7 @@ export default {
       //清空父组件的等级列表
       this.$bus.$emit("clearCategory");
     },
-    //给父组件传递三级列表的各个id(自定义事件触发)
+    //给父组件传递三级列表的各个id(全局事件总线触发)
     getAttr() {
       const category = { ...this.category };
       this.$bus.$emit("changeAttrs", category);

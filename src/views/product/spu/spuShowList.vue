@@ -76,6 +76,9 @@ export default {
     getSpuLists(category) {
       this.isGetSuccess = false;
       this.category = category;
+      console.log("show请求组件", category);
+      console.log("show请求组件", this.category);
+      // console.log(category);
       this.getPagesTradeMarkList();
     },
     //请求spu列表
