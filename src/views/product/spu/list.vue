@@ -27,14 +27,13 @@ export default {
       this.isShow = false;
       // this.spuItem = JSON.parse(JSON.stringify(row));
       this.spuItem = { ...row };
-      // console.log(this.spuItem);
     },
 
     //update组件数据更新，父组件通知SpuShowList组件重新发送请求更新列表
     updateIsShow(category3Id) {
       this.isShow = true;
+      //当父组件数据接受到，子组件SpuShowList的请求是异步更新，同步触发事件不能获取到数据
       this.$nextTick(() => {
-        console.log("list父组件", category3Id);
         this.$bus.$emit("changeAttrs", { category3Id });
       });
     },

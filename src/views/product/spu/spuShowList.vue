@@ -1,6 +1,11 @@
 <template>
   <el-card style="margin-top: 20px">
-    <el-button type="primary" icon="el-icon-plus">添加SPU</el-button>
+    <el-button
+      type="primary"
+      icon="el-icon-plus"
+      @click="$emit('changeIsShow', { category3Id: category.category3Id })"
+      >添加SPU</el-button
+    >
     <el-table
       :data="spuList"
       border
@@ -12,7 +17,7 @@
       <el-table-column label="SPU名称" prop="spuName"> </el-table-column>
       <el-table-column label="SPU描述" prop="description"> </el-table-column>
       <el-table-column label="操作">
-        <template v-slot="{ row }">
+        <template v-slot="{ row, $index }">
           <el-button type="primary" icon="el-icon-plus" size="mini"></el-button>
           <el-button
             type="primary"
@@ -25,6 +30,7 @@
             type="danger"
             icon="el-icon-delete"
             size="mini"
+            @click="delSpu(row, $index)"
           ></el-button>
         </template>
       </el-table-column>
@@ -66,6 +72,29 @@ export default {
     };
   },
   methods: {
+    //删除当前的某个spu
+    delSpu(row, index) {
+      // console.log(row, index);
+      this.$confirm(`您确定删除${row.spuName}吗?`, {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(async () => {
+          const result = await this.$API.spu.deleteSpu(row.id);
+          if (result.code === 200) {
+            this.spuList = this.spuList.splice(index, 1);
+            this.$message.success(`删除${row.spuName}成功`);
+            //重新刷新列表
+            this.getPagesTradeMarkList();
+          } else {
+            this.$message.error(`删除${row.spuName}失败`);
+          }
+        })
+        .catch(() => {
+          this.$message.info(`您已取消删除${row.spuName}`);
+        });
+    },
     //当等级属性更改的时候,该组件子显示的内容要清空
     //清空等级属性列表
     clearCategory() {
@@ -76,9 +105,6 @@ export default {
     getSpuLists(category) {
       this.isGetSuccess = false;
       this.category = category;
-      console.log("show请求组件", category);
-      console.log("show请求组件", this.category);
-      // console.log(category);
       this.getPagesTradeMarkList();
     },
     //请求spu列表

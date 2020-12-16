@@ -126,7 +126,9 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="save">保存</el-button>
-          <el-button @click="cancleUpdate">取消</el-button>
+          <el-button @click="$emit('updateIsShow', spuform.category3Id)"
+            >取消</el-button
+          >
         </el-form-item>
       </el-form>
 
@@ -312,25 +314,32 @@ export default {
             spuImageList: this.spuImageList,
             spuSaleAttrList: this.spuSaleAttrList,
           };
-          const result = await this.$API.spu.getUpdateSpu(data);
+
+          //判断是更新还是添加,如果spu有自己的id就是更新
+          let result;
+          if (this.spuform.id) {
+            result = await this.$API.spu.getUpdateSpu(data);
+          } else {
+            result = await this.$API.spu.getSaveSpu(data);
+          }
+
           if (result.code === 200) {
-            this.$message.success("更新spu数据成功");
+            this.$message.success(
+              `${this.spuform.id ? "更新" : "添加"}spu数据成功`
+            );
             //通知父组件切换到正常的show页面
             this.$emit("updateIsShow", this.spuform.category3Id);
-            console.log("update更新组件", this.spuform.category3Id);
-            // this.$emit("updateIsShow")
           } else {
-            this.$message.error("更新spu数据失败,请重新操作");
+            this.$message.error(
+              `${this.spuform.id ? "更新" : "添加"}spu数据失败，请重新操作`
+            );
           }
         } else {
-          this.$message.error("更新spu数据失败,请重新操作");
+          this.$message.error(
+            `${this.spuform.id ? "更新" : "添加"}spu数据失败，请重新操作`
+          );
         }
       });
-    },
-    //取消更新/保存
-    cancleUpdate() {
-      this.$emit("updateIsShow", this.spuform.category3Id);
-      console.log("update更新组件", this.spuform.category3Id);
     },
     //获取所有销售属性列表
     async getSaleAttrsList() {
@@ -400,11 +409,10 @@ export default {
     },
     //上传文件图片之前触发，里面进行图片校验，默认接收到传输的文件
     beforeAvatarUpload(file) {
-      //  accept="image/png, image/jpeg"可以直接设置接受的文件的属性"image/*"即支持所有img格式
+      //accept="image/png, image/jpeg"可以直接设置可以选择接受的文件的属性,"image/*"即支持所有img格式筛选
       //该函数是对accept类型的进一步规范校验
-      //支持的文件格式类型
-      // const supportTypes = ["image/jpg", "image/png", "image/jpeg"];
-      const supportTypes = ["image/jpg", "image/png"];
+      //支持的文件格式类型,jpeg,跟jep一起写，两者格式可能出现判断失误
+      const supportTypes = ["image/jpg", "image/png", "image/jpeg"];
       //判断上传的类型是否支持
       const isVadilid = supportTypes.includes(file.type);
       // const isVadilid = supportTypes.indexOf(file.type) > -1;
@@ -431,9 +439,12 @@ export default {
   },
   mounted() {
     this.getSaleAttrsList();
-    this.getSpuSaleAttrsList();
     this.getAllTrademarkList();
-    this.getSpuImagesList();
+    //判断spu自己有没有id，有就是更新，没有就是添加，就只发送前两个请求
+    if (this.spuform.id) {
+      this.getSpuSaleAttrsList();
+      this.getSpuImagesList();
+    }
   },
 };
 </script>

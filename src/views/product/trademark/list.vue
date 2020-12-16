@@ -174,8 +174,7 @@ export default {
     //上传文件图片之前触发，里面进行图片校验，默认接收到传输的文件
     beforeAvatarUpload(file) {
       //支持的文件格式类型
-      // const supportTypes = ["image/jpg", "image/png", "image/jpeg"];
-      const supportTypes = ["image/jpg", "image/png"];
+      const supportTypes = ["image/jpg", "image/png", "image/jpeg"];
       //判断上传的类型是否支持
       const isVadilid = supportTypes.includes(file.type);
       // 校验文件的大小
