@@ -118,6 +118,7 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
 export default {
   name: "SkuList",
   props: {
@@ -140,6 +141,11 @@ export default {
         skuImgList: [{ required: true, validator: this.ImgsValidator }],
       },
     };
+  },
+  computed: {
+    ...mapState({
+      category: (state) => state.category.category,
+    }),
   },
   methods: {
     handleSelectionChange() {},
@@ -176,7 +182,7 @@ export default {
     },
     //获取平台属性列表
     async pagesTradeMarkList() {
-      const { category1Id, category2Id, category3Id } = this.spu;
+      const { category1Id, category2Id, category3Id } = this.category;
       const result = await this.$API.attrs.getPagesTradeMarkList({
         category1Id,
         category2Id,

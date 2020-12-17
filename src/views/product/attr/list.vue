@@ -115,6 +115,7 @@
 <script>
 // import Category from "./Category";
 import Category from "@/components/Category";
+import { mapState, mapMutations } from "vuex";
 
 export default {
   name: "AttrList",
@@ -124,35 +125,65 @@ export default {
       isEmpty: false, //判断编辑后的输入内容是否为空
       isShow: true, //判断添加/修改还是正常显示数据
       attrs: [], //保存请求回来的属性列表
-      category: {
-        category1Id: "",
-        category2Id: "",
-        category3Id: "",
-      },
+      // category: {
+      //   category1Id: "",
+      //   category2Id: "",
+      //   category3Id: "",
+      // },
       form: {
         attrName: "",
         attrValueList: [],
       },
     };
   },
-  mounted() {
-    this.$bus.$on("changeAttrs", this.getAttrs);
-    this.$bus.$on("clearCategory", this.clearCategory);
+  computed: {
+    ...mapState({
+      category: (state) => state.category.category,
+    }),
   },
-  beforeDestroy() {
-    this.$bus.$off("changeAttrs", this.getAttrs);
-    this.$bus.$off("clearCategory", this.clearCategory);
-  },
-  methods: {
-    //清空父级等级属性列表
-    clearCategory() {
+  watch: {
+    "category.category3Id": {
+      handler(category3Id) {
+        //不可以直接在mounted中调用，因为一上来该组件是展示的，category3Id是空，自然不会渲染数据
+        if (!category3Id) {
+          this.attrs = [];
+          return;
+        }
+        this.getAttrs();
+      },
+      immediate: true, // 一上来触发一次
+    },
+    "category.category1Id"() {
       this.isGetSuccess = false;
       this.attrs = [];
     },
+    "category.category2Id"() {
+      this.isGetSuccess = false;
+      this.attrs = [];
+    },
+    $route: {
+      handler() {
+        // console.log(this.category);
+        this["category/CLEAR_CAGEGORY"]();
+        // this.$nextTick(() => {
+        //   console.log("attr");
+        //   this.attrs = [];
+        // });
+      },
+      immediate: true,
+    },
+  },
+  methods: {
+    ...mapMutations(["category/CLEAR_CAGEGORY"]),
+    //清空父级等级属性列表
+    // clearCategory() {
+    //   this.isGetSuccess = false;
+    //   this.attrs = [];
+    // },
     //获取具体属性列表——全局事件总线
     async getAttrs(category) {
       this.isGetSuccess = false;
-      this.category = category;
+      // this.category = category;
       const result = await this.$API.attrs.getPagesTradeMarkList(this.category);
       if (result.code === 200) {
         this.attrs = result.data;
@@ -270,6 +301,17 @@ export default {
         });
     },
   },
+  mounted() {
+    // if (!this.category.category3Id) {
+    //   this.attrs = [];
+    // }
+    // this.$bus.$on("changeAttrs", this.getAttrs);
+    // this.$bus.$on("clearCategory", this.clearCategory);
+  },
+  // beforeDestroy() {
+  //   this.$bus.$off("changeAttrs", this.getAttrs);
+  //   this.$bus.$off("clearCategory", this.clearCategory);
+  // },
   components: {
     Category,
   },

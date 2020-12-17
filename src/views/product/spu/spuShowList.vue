@@ -3,7 +3,8 @@
     <el-button
       type="primary"
       icon="el-icon-plus"
-      @click="$emit('changeIsShow', { category3Id })"
+      @click="$emit('changeIsShow')"
+      :disabled="!!!this.$store.state.category.category.category3Id"
       >添加SPU</el-button
     >
     <el-table
@@ -22,7 +23,7 @@
             type="primary"
             icon="el-icon-plus"
             size="mini"
-            @click="$emit('changeSkuIsShow', { ...row, ...category })"
+            @click="$emit('changeSkuIsShow', { ...row })"
           ></el-button>
           <el-button
             type="primary"
@@ -56,12 +57,9 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapState, mapMutations } from "vuex";
 export default {
   name: "SpuShowList",
-  // props: {
-  //   changeIsShow: Function,
-  // },
   data() {
     return {
       current: 1, // 代表当前页码
@@ -81,10 +79,30 @@ export default {
     "category.category3Id": {
       handler(category3Id) {
         //不可以直接在mounted中调用，因为一上来该组件是展示的，category3Id是空，自然不会渲染数据
-        if (!category3Id) return;
+        if (!category3Id) {
+          this.spuList = [];
+          return;
+        }
         this.getPagesTradeMarkList();
       },
       immediate: true, // 一上来触发一次
+    },
+    "category.category1Id"() {
+      this.clearCategory();
+    },
+    "category.category2Id"() {
+      this.clearCategory();
+    },
+    $route: {
+      handler() {
+        // console.log(this.category);
+        this["category/CLEAR_CAGEGORY"]();
+        // this.$nextTick(() => {
+        //   console.log("show");
+        //   this.spuList = [];
+        // });
+      },
+      immediate: true,
     },
   },
   computed: {
@@ -93,6 +111,7 @@ export default {
     }),
   },
   methods: {
+    ...mapMutations(["category/CLEAR_CAGEGORY"]),
     //删除当前的某个spu
     delSpu(row, index) {
       this.$confirm(`您确定删除${row.spuName}吗?`, {
@@ -120,6 +139,9 @@ export default {
     clearCategory() {
       this.isGetSuccess = false;
       this.spuList = [];
+      this.current = 1;
+      this.size = 3;
+      this.total = 0;
     },
     // Category组件三级分类选择好后，触发获取具体spu列表，使用全局事件总线,
     getSpuLists(category) {
@@ -152,6 +174,9 @@ export default {
     },
   },
   mounted() {
+    // if (!this.category.category3Id) {
+    //   this.spuList = [];
+    // }
     //category组件触发发送给过来属性id数据，同时本组件请求属性3的spu数据列表
     // this.$bus.$on("changeAttrs", this.getSpuLists);
     // this.$bus.$on("clearCategory", this.clearCategory);

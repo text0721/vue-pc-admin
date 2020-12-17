@@ -444,6 +444,10 @@ export default {
       this.getSpuSaleAttrsList();
       this.getSpuImagesList();
     }
+    // baseTrademark/getTrademarkList`,
+    // baseSaleAttrList`,
+    // spuSaleAttrList/${spuId}`,
+    // spuImageList/${spuId}`,
   },
 };
 </script>
