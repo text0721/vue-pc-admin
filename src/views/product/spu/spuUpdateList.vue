@@ -141,7 +141,6 @@
 </template>
 
 <script>
-import { resetRouter } from "@/router";
 export default {
   name: "SpuUpdateList",
   props: {

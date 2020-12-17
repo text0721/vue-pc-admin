@@ -3,7 +3,7 @@
     <el-button
       type="primary"
       icon="el-icon-plus"
-      @click="$emit('changeIsShow', { category3Id: category.category3Id })"
+      @click="$emit('changeIsShow', { category3Id })"
       >添加SPU</el-button
     >
     <el-table
@@ -18,7 +18,12 @@
       <el-table-column label="SPU描述" prop="description"> </el-table-column>
       <el-table-column label="操作">
         <template v-slot="{ row, $index }">
-          <el-button type="primary" icon="el-icon-plus" size="mini"></el-button>
+          <el-button
+            type="primary"
+            icon="el-icon-plus"
+            size="mini"
+            @click="$emit('changeSkuIsShow', { ...row, ...category })"
+          ></el-button>
           <el-button
             type="primary"
             icon="el-icon-edit"
@@ -51,6 +56,7 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
 export default {
   name: "SpuShowList",
   // props: {
@@ -64,17 +70,31 @@ export default {
       loading: false, //设置loading
       isGetSuccess: false, //设置添加spu属性的高亮
       spuList: [], //所有的Spu列表
-      category: {
-        category1Id: "",
-        category2Id: "",
-        category3Id: "",
-      },
+      // category: {
+      //   category1Id: "",
+      //   category2Id: "",
+      //   category3Id: "",
+      // },
     };
+  },
+  watch: {
+    "category.category3Id": {
+      handler(category3Id) {
+        //不可以直接在mounted中调用，因为一上来该组件是展示的，category3Id是空，自然不会渲染数据
+        if (!category3Id) return;
+        this.getPagesTradeMarkList();
+      },
+      immediate: true, // 一上来触发一次
+    },
+  },
+  computed: {
+    ...mapState({
+      category: (state) => state.category.category,
+    }),
   },
   methods: {
     //删除当前的某个spu
     delSpu(row, index) {
-      // console.log(row, index);
       this.$confirm(`您确定删除${row.spuName}吗?`, {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
@@ -117,7 +137,6 @@ export default {
       });
       if (result.code === 200) {
         this.$message.success("SPU数据请求成功");
-        // console.log(result);
         this.spuList = result.data.records;
         this.current = result.data.current;
         this.size = result.data.size;
@@ -134,13 +153,13 @@ export default {
   },
   mounted() {
     //category组件触发发送给过来属性id数据，同时本组件请求属性3的spu数据列表
-    this.$bus.$on("changeAttrs", this.getSpuLists);
-    this.$bus.$on("clearCategory", this.clearCategory);
+    // this.$bus.$on("changeAttrs", this.getSpuLists);
+    // this.$bus.$on("clearCategory", this.clearCategory);
   },
   beforeDestroy() {
     //不清理会累计请求，当真正请求时，本组件会累计触发
-    this.$bus.$off("changeAttrs", this.getAttrs);
-    this.$bus.$off("clearCategory", this.clearCategory);
+    // this.$bus.$off("changeAttrs", this.getAttrs);
+    // this.$bus.$off("clearCategory", this.clearCategory);
   },
 };
 </script>
