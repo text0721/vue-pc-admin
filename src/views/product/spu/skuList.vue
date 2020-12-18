@@ -4,7 +4,7 @@
       <el-form
         label-width="100px"
         :model="skuform"
-        :rules="skuformRules"
+        :rules="rules"
         ref="skuformRules"
       >
         <el-form-item label="SPU名称">
@@ -95,7 +95,7 @@
                   v-for="value in spuSaleAttr.spuSaleAttrValueList"
                   :key="value.id"
                   :label="value.saleAttrValueName"
-                  :value="`${spuSaleAttr.id}-${value.id}`"
+                  :value="value.id"
                 ></el-option>
               </el-select>
             </el-form-item>
@@ -139,10 +139,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="save">保存</el-button>
-          <!-- <el-button @click="$emit('updateIsShow', skuform.category3Id)"
-            >取消</el-button
-          > -->
-          <el-button @click="$emit(`updateIsShow`, this.skuform.category3Id)"
+          <el-button @click="$emit(`updateIsShow`, skuform.category3Id)"
             >取消</el-button
           >
         </el-form-item>
@@ -169,7 +166,7 @@ export default {
       spuSaleAttrList: [], //销售属性
       spuImageList: [],
       attrsList: [], //平台属性
-      skuformRules: {
+      rules: {
         skuName: [
           { required: true, message: "请输入sku名称", trigger: "change" },
         ],
@@ -182,21 +179,18 @@ export default {
           {
             required: true,
             validator: this.skuAttrValueListValidator,
-            trigger: "change",
           },
         ],
         skuSaleAttrValueList: [
           {
             required: true,
-            validator: this.skuSaleAttrValueListValidator,
-            trigger: "change",
+            // validator: this.skuSaleAttrValueListValidator,
           },
         ],
         skuImageList: [
           {
             required: true,
             validator: this.skuImageListValidator,
-            trigger: "change",
           },
         ],
       },
@@ -263,12 +257,13 @@ export default {
       } = this;
       //当选中最后一个属性,由于值是根据下标push进去的，所以此时两面的都是undefined，取反就是true
       if (
-        attrsList.length != skuAttrValueList.length ||
+        skuAttrValueList.length !== attrsList.length ||
         skuAttrValueList.some((attr) => !attr)
       ) {
         callback("请选好每项平台属性");
         return;
       }
+      callback();
     },
     //校验销售属性,全部都要选择
     skuSaleAttrValueListValidator(rule, value, callback) {
@@ -277,21 +272,57 @@ export default {
         skuform: { skuSaleAttrValueList },
       } = this;
       if (
-        spuSaleAttrList.length != skuSaleAttrValueList.length ||
+        skuSaleAttrValueList.length !== spuSaleAttrList.length ||
         skuSaleAttrValueList.some((sale) => !sale)
       ) {
         callback("请选好每项平台属性");
         return;
       }
+      callback();
     },
-    //点击保存按钮，发送请求，表单校验，切换界面
+    //点击保存按钮，表单校验，整理数据，发送请求，切换界面
     save() {
-      this.$refs.skuformRules.validate((valide) => {
-        if (valide) {
-          console.log("校验通过");
+      this.$refs.skuformRules.validate(async (valid) => {
+        if (valid) {
+          console.log(22);
           //表示校验通过
+          //切割整理平台数据
+          const skuAttrValueList = this.skuform.skuAttrValueList.map((attr) => {
+            const [attrId, valueId] = attr.split("-");
+            return {
+              attrId,
+              valueId,
+            };
+          });
+          //整理销售数据
+          const skuSaleAttrValueList = this.skuform.skuSaleAttrValueList.map(
+            (saleAttrValueId) => {
+              return {
+                saleAttrValueId,
+                spuId,
+              };
+            }
+          );
+          //整理默认图片的url
+          const skuDefaultImg = this.skuform.skuImageList.find(
+            (img) => img.isDefault
+          ).imgUrl;
+          const { category3Id, id: spuId, tmId } = this.spu;
+
+          const result = await this.$API.sku.saveSpu({
+            ...this.skuform,
+            category3Id,
+            tmId,
+            skuAttrValueList,
+            skuSaleAttrValueList,
+            skuDefaultImg,
+          });
+          if (result.code === 200) {
+            this.$message.success("保存sku成功");
+            this.$emit("updateIsShow");
+          }
         } else {
-          console.log("校验失败");
+          this.$message.error("保存sku失败");
         }
       });
     },
