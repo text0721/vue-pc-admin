@@ -88,21 +88,14 @@ export default {
     GET_CATEGORY3_ID(state, category3Id) {
       state.category.category3Id = category3Id;
     },
-    CLEAR_CAGEGORY(state) {
-      // 路由变化就清空数据
-
-      if (state.cagegory && state.cagegory.category1Id)
-        state.cagegory.category1Id = "";
-      if (state.cagegory && state.cagegory.category2Id)
-        state.cagegory.category2Id = "";
-      if (state.cagegory && state.cagegory.category3Id)
-        state.cagegory.category3Id = "";
-      // console.log(
-      //   "清理vuex",
-      //   state.cagegory.category1Id,
-      //   state.cagegory.category2Id,
-      //   state.cagegory.category3Id
-      // );
+    CLEAR_CAGEGORY_ID(state) {
+      // 清空数据
+      state.category.category1Id = "";
+      state.category.category2Id = "";
+      state.category.category3Id = "";
+      state.category1List = [];
+      state.category2List = [];
+      state.category3List = [];
     }
   }
 };

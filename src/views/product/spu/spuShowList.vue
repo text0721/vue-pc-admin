@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from "vuex";
+import { mapState } from "vuex";
 export default {
   name: "SpuShowList",
   data() {
@@ -84,6 +84,7 @@ export default {
           return;
         }
         this.getPagesTradeMarkList();
+        this.isGetSuccess = false;
       },
       immediate: true, // 一上来触发一次
     },
@@ -93,17 +94,6 @@ export default {
     "category.category2Id"() {
       this.clearCategory();
     },
-    $route: {
-      handler() {
-        // console.log(this.category);
-        this["category/CLEAR_CAGEGORY"]();
-        // this.$nextTick(() => {
-        //   console.log("show");
-        //   this.spuList = [];
-        // });
-      },
-      immediate: true,
-    },
   },
   computed: {
     ...mapState({
@@ -111,7 +101,6 @@ export default {
     }),
   },
   methods: {
-    ...mapMutations(["category/CLEAR_CAGEGORY"]),
     //删除当前的某个spu
     delSpu(row, index) {
       this.$confirm(`您确定删除${row.spuName}吗?`, {
@@ -144,11 +133,11 @@ export default {
       this.total = 0;
     },
     // Category组件三级分类选择好后，触发获取具体spu列表，使用全局事件总线,
-    getSpuLists(category) {
-      this.isGetSuccess = false;
-      this.category = category;
-      this.getPagesTradeMarkList();
-    },
+    // getSpuLists(category) {
+    //   this.isGetSuccess = false;
+    //   // this.category = category;
+    //   this.getPagesTradeMarkList();
+    // },
     //请求spu列表
     async getPagesTradeMarkList() {
       this.loading = true;

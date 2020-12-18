@@ -1,6 +1,10 @@
 <template>
   <div>
-    <SkuList v-if="isShowSkuList" :skuItem="skuItem" />
+    <SkuList
+      v-if="isShowSkuList"
+      :skuItem="skuItem"
+      @updateIsShow="updateIsShow"
+    />
     <div v-else>
       <Category :isShow="isShow" />
       <SpuShowList
@@ -42,10 +46,11 @@ export default {
     //update组件数据更新，父组件通知SpuShowList组件重新发送请求更新列表
     updateIsShow(category3Id) {
       this.isShow = true;
+      this.isShowSkuList = false;
       //当父组件数据接受到，子组件SpuShowList的请求是异步更新，同步触发事件不能获取到数据
-      this.$nextTick(() => {
-        this.$bus.$emit("changeAttrs", { category3Id });
-      });
+      // this.$nextTick(() => {
+      //   this.$bus.$emit("changeAttrs", { category3Id });
+      // });
     },
 
     //切换到spu组件
@@ -55,6 +60,10 @@ export default {
       this.skuItem = { ...row };
       this.isShowSkuList = true;
     },
+  },
+  beforeDestroy() {
+    //清除state的id，防止带到下个路由
+    this.$store.commit("category/CLEAR_CAGEGORY_ID");
   },
   components: {
     Category,

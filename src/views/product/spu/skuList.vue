@@ -10,17 +10,17 @@
         <el-form-item label="SPU名称">
           <span>{{ spu.spuName }}</span>
         </el-form-item>
-        <el-form-item label="SPU名称" prop="skuName">
+        <el-form-item label="SkU名称" prop="skuName">
           <el-input
             type="text"
-            placeholder="SPU名称"
+            placeholder="SkU名称"
             v-model="skuform.skuName"
           ></el-input>
         </el-form-item>
         <el-form-item label="价格(元)" prop="price">
           <el-input-number
             type="text"
-            placeholder="SPU价格"
+            placeholder="SkU价格"
             v-model="skuform.price"
             controls-position="right"
             :min="0"
@@ -35,7 +35,7 @@
         >
           <el-input-number
             type="text"
-            placeholder="SPU重量"
+            placeholder="SkU重量"
             v-model="skuform.kg"
             controls-position="right"
             :min="0"
@@ -46,7 +46,7 @@
         <el-form-item label="规格描述" prop="description">
           <el-input
             type="textarea"
-            placeholder="SPU规格描述"
+            placeholder="SkU规格描述"
             v-model="skuform.description"
           ></el-input>
         </el-form-item>
@@ -110,7 +110,10 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary">保存</el-button>
-          <el-button>取消</el-button>
+          <!-- <el-button @click="$emit('updateIsShow', skuform.category3Id)"
+            >取消</el-button
+          > -->
+          <el-button @click="aaa">取消</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -148,6 +151,10 @@ export default {
     }),
   },
   methods: {
+    aaa() {
+      this.$emit("updateIsShow", this.skuform.category3Id);
+      console.log("sku");
+    },
     handleSelectionChange() {},
     //校验sku是否有图片
     ImgsValidator(rule, value, callback) {

@@ -86,7 +86,6 @@ export default {
     ...mapMutations(["category/GET_CATEGORY3_ID"]),
     //请求二级分类列表
     async getCategory2() {
-      // console.log(this.category.category1Id);
       this["category/getCategory2List"](this.category.category1Id);
       this.category.category2Id = "";
       this.category.category3Id = "";

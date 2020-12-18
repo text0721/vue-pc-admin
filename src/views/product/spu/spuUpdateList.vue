@@ -248,7 +248,6 @@ export default {
     },
     //删除spu单个销售属性值
     delTag(row, index) {
-      // console.log(row, index);
       row.spuSaleAttrValueList.splice(index, 1);
     },
     //删除当前spu整个销售属性
@@ -306,7 +305,6 @@ export default {
       */
       this.$refs.formRules.validate(async (valid) => {
         if (valid) {
-          // console.log("校验成功");
           // 表单验证通过之后发送请求，更新spu数据
           const data = {
             ...this.spuform,
@@ -345,7 +343,6 @@ export default {
       const result = await this.$API.spu.getSaleAttrList();
       if (result.code === 200) {
         this.saleAttrList = result.data;
-        // console.log(result);
         this.$message.success("获取所有销售属性成功");
       } else {
         this.$message.error("获取所有销售属性失败");
@@ -356,7 +353,7 @@ export default {
       const result = await this.$API.spu.getSpuSaleAttrList(this.spuform.id);
       if (result.code === 200) {
         this.spuSaleAttrList = result.data;
-        // console.log(this.spuSaleAttrList);
+      
         this.$message.success("获取当前spu列表成功");
       } else {
         this.$message.error("获取当前spu列表失败");
@@ -385,7 +382,7 @@ export default {
         //     url: img.imgUrl,
         //   };
         // });
-        // console.log(result.data)
+   
         this.$message.success("获取spu所有图片列表成功");
       } else {
         this.$message.error("获取spu所有图片列表失败");

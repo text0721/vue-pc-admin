@@ -161,20 +161,8 @@ export default {
       this.isGetSuccess = false;
       this.attrs = [];
     },
-    $route: {
-      handler() {
-        // console.log(this.category);
-        this["category/CLEAR_CAGEGORY"]();
-        // this.$nextTick(() => {
-        //   console.log("attr");
-        //   this.attrs = [];
-        // });
-      },
-      immediate: true,
-    },
   },
   methods: {
-    ...mapMutations(["category/CLEAR_CAGEGORY"]),
     //清空父级等级属性列表
     // clearCategory() {
     //   this.isGetSuccess = false;
@@ -308,10 +296,13 @@ export default {
     // this.$bus.$on("changeAttrs", this.getAttrs);
     // this.$bus.$on("clearCategory", this.clearCategory);
   },
-  // beforeDestroy() {
-  //   this.$bus.$off("changeAttrs", this.getAttrs);
-  //   this.$bus.$off("clearCategory", this.clearCategory);
-  // },
+
+  beforeDestroy() {
+    //清空state的id,防止带到下个路由
+    this.$store.commit("category/CLEAR_CAGEGORY_ID");
+    //   this.$bus.$off("changeAttrs", this.getAttrs);
+    //   this.$bus.$off("clearCategory", this.clearCategory);
+  },
   components: {
     Category,
   },
